@@ -9,6 +9,8 @@ def index():
 
 @admin.route('/login/', methods=['GET', 'POST'])
 def login():
+    if session.get('user_id') is not None:
+        return "Your are already logged in"
     form = LoginForm(request.form)
     if request.method == 'POST':
         if not form.validate_on_submit():
@@ -23,11 +25,15 @@ def login():
             #return "Incorrect Credentials", 400
             flash('Incorrect Credentials', category='error')
             return render_template('admin/login.html', form=form)
+        if session.get('user_id') is not None:
+            return "Your are already logged in"
+        if not user.is_admin():
+            return "You do not have permission to login "
+
         session['email'] = user.email
         session['user_id'] = user.id
+        session['role'] = user.role
         return "Logined in successfully"
 
-    if session.get('email') is not None:
-        return "You are already logged in"
         #print(f"Form is validated? {form.validate_on_submit()}")
     return render_template('admin/login.html', form=form)
